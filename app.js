@@ -4,11 +4,18 @@ import userRouter from "./routes/user.js"
 import taskRouter from "./routes/task.js"
 import cookieParser from "cookie-parser"
 import { errorMiddleware } from "./middleware/error.js"
+import { config } from "dotenv"
+import cors from "cors"
 
 
 const app =express()
 
+app.use(cors({
+    methods:["GET","POST","PUT","DELETE"],
+    credentials:true,
+}))
 
+config()
 connectDB()
 
 app.use(express.json())
@@ -27,7 +34,7 @@ app.get("/",(req,res)=>{
 app.use(errorMiddleware)
 
 
-app.listen(4000,()=>{
-    console.log("app is working")
+app.listen(process.env.PORT,()=>{
+    console.log(`Server is working on PORT: ${process.env.PORT} in ${process.env.NODE_ENV} mode`)
 })
 
