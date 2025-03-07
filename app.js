@@ -3,6 +3,7 @@ import { connectDB } from "./database/database.js"
 import userRouter from "./routes/user.js"
 import taskRouter from "./routes/task.js"
 import cookieParser from "cookie-parser"
+import { errorMiddleware } from "./middleware/error.js"
 
 
 const app =express()
@@ -22,6 +23,8 @@ app.get("/",(req,res)=>{
 
     res.send("nice working")
 })
+
+app.use(errorMiddleware)
 
 
 app.listen(4000,()=>{

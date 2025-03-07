@@ -1,72 +1,98 @@
-import { Task } from "../models/task.js"
+    import { Task } from "../models/task.js"
+    import errorHandler from "../middleware/error.js"
 
 
 
-export const newTask=async(req,res,next)=>{
+    export const newTask=async(req,res,next)=>{
 
-    const{title,description}=req.body
+    try {
 
-    await Task.create({
-        title,description,user:req.user,
-    })
+        const{title,description}=req.body
 
-    res.status(201).json({
-        success:true,
-        message:"Task added successfully",
-    })
+        await Task.create({
+            title,description,user:req.user,
+        })
 
-}
+        res.status(201).json({
+            success:true,
+            message:"Task added successfully",
+        })
+
+    } catch (error) {
+
+        next(error) 
+    }
+
+ }
 
 
-export const getMyTask=async(req,res,next)=>{
+    export const getMyTask=async(req,res,next)=>{
 
-    const userid=req.user._id
+    try {
+        
+        const userid=req.user._id
 
-    const task = await Task.find({user:userid})
+        const task = await Task.find({user:userid})
 
-    res.status(200).json({
-        success:true,
-        task,
+        res.status(200).json({
+            success:true,
+            task,
 
-    })
-}
+        })
 
-export const updateTask=async(req,res,next)=>{
+    } catch (error) {
 
-   const task= await Task.findById(req.params.id)
-  
-   if(!task) return res.status(404).json({
-    success:false,
-    message:"Invaild ID"
-    })
+        next(error)
+    }
 
-   task.isCompleted=!task.isCompleted
+  }
 
-   await task.save()
+    export const updateTask=async(req,res,next)=>{
+
+    try {
+        
+        const task= await Task.findById(req.params.id)
+
+        if(!task) return next(new errorHandler("Invalid ID",404))
+
+    task.isCompleted=!task.isCompleted
+
+    await task.save()
 
     res.status(200).json({
         success:true,
         message:"Task updated",
 
     })
-}
 
-export const deleteTask=async(req,res,next)=>{
+    } catch (error) {
 
-    
-    const task= await Task.findById(req.params.id)
+        next(error)
+        
+    }
+ }
 
-    if(!task) return res.status(404).json({
-        success:false,
-        message:"Invaild ID"
-    })
+    export const deleteTask=async(req,res,next)=>{
 
-    await task.deleteOne()
+    try {
+        
+        const task= await Task.findById(req.params.id)
+
+        if(!task) return next(new errorHandler("Invalid ID",404))
+
+        await task.deleteOne()
 
 
-    res.status(200).json({
-        success:true,
-        task,
+        res.status(200).json({
+            success:true,
+            task,
 
-    })
-}
+        })
+
+    } catch (error) {
+
+        next(error)
+        
+    }    
+
+ }

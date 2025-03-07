@@ -1,6 +1,7 @@
 import { User } from "../models/user.js"
 import bcrypt from "bcrypt"
 import { sendCookie } from "../utils/features.js"
+import errorHandler from "../middleware/error.js"
 
 export const getMyProfile = (req,res)=>{    
 
@@ -21,41 +22,48 @@ export const logout = (req,res)=>{
 
 export const login = async(req,res,next)=>{
 
+    try {
+        
+        
     const {email,password}=req.body
 
     const user= await User.findOne({email}).select("+password")
 
-    if(!user) return res.status(401).json({
-        success:false,
-        message:"invalid Email or Password",
-    })
+    if(!user) return next(new errorHandler("Invalid email or password",400))
 
     const isMatch = await bcrypt.compare(password,user.password)
     
-    if(!isMatch) return res.status(401).json({
-        success:false,
-        message:"invalid Email or Password",
-    })
+    if(!isMatch) return next(new errorHandler("Invalid email or password",404))
 
     sendCookie(user,res,`Welcome back ${user.name}`,200)
 
+    } 
+    catch (error) {
+
+        next(error)    
+    }
+
 }
 
- export const register = async (req,res)=>{
+ export const register = async (req,res,next)=>{
     
-    const{name,email,password}=req.body
-    let user = await User.findOne({email})
+    try {
+        
+        const{name,email,password}=req.body
+        let user = await User.findOne({email})
+    
+        if(user) return next(new errorHandler("User already exists",400))
+    
+        const hashedPassword=await bcrypt.hash(password,10)
+    
+        user =await User.create({name,email,password:hashedPassword})
+    
+        sendCookie(user,res,"Registered successfully",201)
 
-    if(user) return res.status(401).json({
-        success:false,
-        message:"User already exist",
-    })
-
-    const hashedPassword=await bcrypt.hash(password,10)
-
-    user =await User.create({name,email,password:hashedPassword})
-
-    sendCookie(user,res,"Registered successfully",201)
+    } catch (error) {
+        
+        next(error)
+    }
 }
 
 
